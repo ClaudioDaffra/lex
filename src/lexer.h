@@ -5,10 +5,23 @@
 #define _DEFAULT_SOURCE
 #endif
 
-//#include <sys/syslimits.h>
 #include <fcntl.h>
 
+#ifdef _MSC_VER
+#include <io.h>
+#include <limits.h>
+#else
 #include <unistd.h>
+#endif
+
+#ifndef PATH_MAX
+#define PATH_MAX _MAX_PATH
+#endif
+
+#ifndef NAME_MAX
+#define NAME_MAX _MAX_FNAME
+#endif
+
 #include <limits.h>
 #include <stdlib.h>
        

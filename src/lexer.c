@@ -85,7 +85,7 @@ int lexerInclude( plexer_t this , char * fileInputName )
 	strcpy(fileInputName,newBuffer);
   }	
 	
-//fwprintf ( stderr , L"## lexerInclude %s.\n",fileInputName);
+    //fwprintf ( stderr , L"## lexerInclude %s.\n",fileInputName);
 	
     FILE* fi ;  
     errno_t err=0 ;
@@ -110,11 +110,19 @@ int lexerInclude( plexer_t this , char * fileInputName )
 			
 			if ( this->pFileOutputLexer != NULL )
 			{
+                #ifdef _MSC_VER
+				fwprintf ( this->pFileOutputLexer , L"\n%-20ls : [%p] -> [%-20hs]\n" 
+					,L"file lexer"        
+					,this->pFileOutputLexer 
+					,this->fileNameOutputLexer 
+				) ;                
+                #else
 				fwprintf ( this->pFileOutputLexer , L"\n%-20ls : [0x%x] -> [%-20hs]\n" 
 					,L"file lexer"        
 					,(unsigned long)this->pFileOutputLexer 
 					,this->fileNameOutputLexer 
 				) ;
+                #endif
 			}
 		}
     }
@@ -774,7 +782,7 @@ int lexerScan( plexer_t this )
         this->col_start = this->col ; 
 
         // ....................................... DEMO #include lexer
-/*      
+/* 
         if (  this->c0==L'X' )
         {
 			char* newBuffer = lexerIncludeNewBuffer( this , "b.txt" );
@@ -796,7 +804,7 @@ int lexerScan( plexer_t this )
            
            continue ;
         }
-*/ 
+*/
         //......................... skip blank
 
         if ( iswblank($c0) || iswcntrl(this->c0) || this->c0==L'\u2003' )

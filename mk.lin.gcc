@@ -42,12 +42,5 @@ $(APP):$(ALLOBJ)
 clean:
 		-rm $(BDIR)/$(APP) ; rm $(ODIR)/*.o ; rm $(LDIR)/*.o ; rm $(ODIR)/*.o ; rm *.o ;
 		-rm *.lexer ; rm tst/*.lexer  ; 
-		-rm *.parser ; rm tst/*.parser ;
-		-rm *.output ; rm tst/*.output  ;        
-		-rm *.ast ; rm tst/*.ast ;
-		-rm *.node ; rm tst/*.node ;
-		-rm *.asm ; rm tst/*.asm ;
-		-rm *.vm ; rm tst/*.vm ;
-		-rm *.symTable ; rm tst/*.symTable ;
-		-rm *.out ; rm tst/*.out ;
+
 		

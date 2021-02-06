@@ -41,12 +41,5 @@ clean:
 		del bin\*.exe & del obj\*.obj & del lib\*.obj
 		del *.exe & del *.obj
 		del *.lexer & del tst\*.lexer
-		del *.parser & del tst\*.parser
-		del *.output & del tst\*.output
-		del *.ast & del tst\*.ast
-		del *.node & del tst\*.node
-		del *.asm & del tst\*.asm
-		del *.vm & del tst\*.vm
-		del *.symTable & del tst\*.symTable
-		del *.out & del tst\*.out
+
 		
