@@ -1,5 +1,5 @@
 ****** 
-* lex
+* µCD
 ******
 
 The MIT License (MIT)
