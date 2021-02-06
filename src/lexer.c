@@ -57,6 +57,36 @@ mapKW_t mapArrayKW[] =
 
 int lexerInclude( plexer_t this , char * fileInputName )
 {
+// 
+// se è la prima volta occorre ricostruire il percorso del file assoulto :
+//
+// input  "tst/a.txt"
+// output "/home/claudio/lex/tst/a.txt"
+//
+// nelle successivi direttive di include, il file fMultipleBuffer viene settato a 1
+// verrà utilizzato il file con path assoluto e togliendo il nome del file verrà aggiunto 
+// il nuovo file con la directory indicata nella direttiva #include :
+//
+// input 	#include "b.txt"
+// output	"/home/claudio/lex/tst/b.txt"
+//
+// input 	#include "test/c.txt"
+// output	"/home/claudio/lex/tst/test/c.txt"
+//
+
+  if ( this->fMultipleBuffer == 0 )
+  {
+	char cwd[PATH_MAX];
+	getcwd(cwd, sizeof(cwd) );
+
+	char newBuffer[PATH_MAX+NAME_MAX];
+	snprintf( newBuffer,PATH_MAX+NAME_MAX-1,"%s/%s",cwd,fileInputName ) ;
+	
+	strcpy(fileInputName,newBuffer);
+  }	
+	
+//fwprintf ( stderr , L"## lexerInclude %s.\n",fileInputName);
+	
     FILE* fi ;  
     errno_t err=0 ;
 
@@ -64,18 +94,29 @@ int lexerInclude( plexer_t this , char * fileInputName )
  
     if ( this->fDebug ) 
     {
-        this->fileNameOutputLexer  = g.makeFileWithNewExt( fileInputName , ".lexer"  ) ;
-        
-        stdFileWOpen ( &this->pFileOutputLexer , this->fileNameOutputLexer , "w+","ccs=UTF-8" ) ;
-        
-        if ( this->pFileOutputLexer != NULL ) // 1234
-        {
-            fwprintf ( this->pFileOutputLexer , L"\n%-20ls : [0x%x] -> [%-20hs]\n" 
-                ,L"file lexer"        
-                ,(unsigned long)this->pFileOutputLexer 
-                ,this->fileNameOutputLexer 
-            ) ;
-        }
+		// vogliamo emettere 1 solo file di output derivante dal file principale in ingresso
+		// 
+		// input 	a.txt
+		// output   a.lexer
+		//
+		// e non multiplu file di lexer in output 
+		
+		if ( this->fMultipleBuffer == 0 )
+		{
+			this->fileNameOutputLexer  = g.makeFileWithNewExt( fileInputName , ".lexer"  ) ;
+			this->fileInputNameS8=gcStrDup(fileInputName);
+			
+			stdFileWOpen ( &this->pFileOutputLexer , this->fileNameOutputLexer , "w+","ccs=UTF-8" ) ;
+			
+			if ( this->pFileOutputLexer != NULL )
+			{
+				fwprintf ( this->pFileOutputLexer , L"\n%-20ls : [0x%x] -> [%-20hs]\n" 
+					,L"file lexer"        
+					,(unsigned long)this->pFileOutputLexer 
+					,this->fileNameOutputLexer 
+				) ;
+			}
+		}
     }
   
     // #1 salva le informazioni del lexer attuale in cima allo stack
@@ -85,6 +126,7 @@ int lexerInclude( plexer_t this , char * fileInputName )
     tempLexBuffer->row                = this->row             ;  
     tempLexBuffer->col                = this->col             ;    
     tempLexBuffer->fileInputName      = this->fileInputName   ;
+    tempLexBuffer->fileInputNameS8    = this->fileInputNameS8 ;    
     tempLexBuffer->pfileInput         = this->pfileInput      ; 
     
     stackPush ( this->sLexBuffer , tempLexBuffer ) ;
@@ -119,7 +161,9 @@ int lexerInclude( plexer_t this , char * fileInputName )
     
     this->row               =   1 ;
     this->col               =   0 ;
-    this->fileInputName     =   cnvS8toWS(fileInputName) ;    
+    this->fileInputName     =   cnvS8toWS(fileInputName) ; 
+    // file input non convertito per facilitare le conversioni coi file multipli 
+    this->fileInputNameS8	=   gcStrDup(fileInputName) ;     
     this->pfileInput        =   fi ;
 
     return 0 ;
@@ -458,6 +502,7 @@ sym_t lexerGetConst( plexer_t this , int base )
 
 wchar_t lexerGetCharU( plexer_t this,int ndigit )
 {
+	
 	$next
 	
 	// da qui in poi deve iniziare  con 
@@ -476,7 +521,7 @@ wchar_t lexerGetCharU( plexer_t this,int ndigit )
 	// il carattere che non è xdigit va rimesso nllo stream
 	lexerUnGetChar($c0);
 
-//fwprintf( stderr , L"lexerGetCharU :: strtemp %ls %d next %lc %lc \n",strTemp ,ndx,$c0,$c1);
+	//fwprintf( stderr , L"lexerGetCharU :: strtemp %ls %d next %lc %lc \n",strTemp ,ndx,$c0,$c1);
 
 	int errUCN=0; // check validità lungheza UCN
 	if( ndigit==-1 )
@@ -556,14 +601,18 @@ wchar_t lexerGetCharacter( plexer_t this )
 }
 
 // ......................................................... cpp directive
+
 /*
- #line 1 "tst/ex0101.txt"
  
--[tst/cpp.txt         ][001,000] len(01) sym(160) [                   #]
--[tst/cpp.txt         ][001,001] len(04) sym(004) [                line]
--[tst/cpp.txt         ][001,006] len(01) sym(005) [                   1] -> [[1]]
--[tst/cpp.txt         ][001,008] len(17) sym(003) [    "tst/ex0101.txt"] -> [[tst/ex0101.txt]]
+	 #line 1 "tst/ex0101.txt"
+	 
+	-[tst/cpp.txt         ][001,000] len(01) sym(160) [                   #]
+	-[tst/cpp.txt         ][001,001] len(04) sym(004) [                line]
+	-[tst/cpp.txt         ][001,006] len(01) sym(005) [                   1] -> [[1]]
+	-[tst/cpp.txt         ][001,008] len(17) sym(003) [    "tst/ex0101.txt"] -> [[tst/ex0101.txt]]
+
 */
+
 int lexerCPP( plexer_t this ) 
 {
 	if ( $c0==L'#' ) 
@@ -578,7 +627,7 @@ int lexerCPP( plexer_t this )
 		
 		//fwprintf ( stdout, L"LEXER LINE [%ls]\n",this->token) ;	
 
-	// #line 123 "file"
+		// #line 123 "file"
 	
 		if ( wcsstr( this->token,L"line")!=0 )
 		{
@@ -625,7 +674,6 @@ int lexerCPP( plexer_t this )
   return 0 ;
 }
 
-
 // ............................................................ <<= >>=
 
 int lexerCheckOp3( plexer_t this , const wchar_t* op3,sym_t sym )
@@ -647,7 +695,31 @@ int lexerCheckOp3( plexer_t this , const wchar_t* op3,sym_t sym )
 	}
 	return 0;
 }
-		
+
+// *********************
+// lexerIncludeNewBuffer
+// *********************
+
+char* lexerIncludeNewBuffer( plexer_t this , char *fileToIncludeRelPath) 
+{
+	char oldBuffer[PATH_MAX];
+	char newBuffer[PATH_MAX+NAME_MAX];
+
+	strcpy(oldBuffer,this->fileInputNameS8);
+
+	char* stop=strrchr(this->fileInputNameS8,'/');
+
+	oldBuffer[stop-this->fileInputNameS8+1]=0;
+
+	//fwprintf(stderr,L"oldBuffer [%s]\n",oldBuffer);
+
+	snprintf( newBuffer,PATH_MAX+NAME_MAX-1,"%s%s",oldBuffer,fileToIncludeRelPath ) ;
+
+	//fwprintf(stderr,L"newBuffer [%s]\n",newBuffer);
+
+	return gcStrDup(newBuffer);
+}
+	
 // ***********
 // Lexer Scan
 // ***********
@@ -702,18 +774,29 @@ int lexerScan( plexer_t this )
         this->col_start = this->col ; 
 
         // ....................................... DEMO #include lexer
-/* TODO da sistemare directory       
+/*      
         if (  this->c0==L'X' )
         {
-           lexerInclude( this,"b.txt" ) ;
+			char* newBuffer = lexerIncludeNewBuffer( this , "b.txt" );
+
+		   this->fMultipleBuffer=1;
+           lexerInclude( this,newBuffer ) ;
+           this->fMultipleBuffer=0;
+           
            continue ;
         }
         if (  this->c0==L'Y' )
         {
-           lexerInclude( this,"test/c.txt" ) ;
+
+		   char* newBuffer = lexerIncludeNewBuffer( this , "test/c.txt" );
+		   		
+		   this->fMultipleBuffer=1;
+           lexerInclude( this,newBuffer ) ;
+           this->fMultipleBuffer=0;
+           
            continue ;
         }
-*/
+*/ 
         //......................... skip blank
 
         if ( iswblank($c0) || iswcntrl(this->c0) || this->c0==L'\u2003' )
@@ -768,6 +851,7 @@ int lexerScan( plexer_t this )
         // ## ....................................... CONSTANT
  
         // HEX hexadecimal
+        
         if ( $c0 == L'0' &&  towlower($c1) == L'x' )  
         {
             $pushToken($c0) 
@@ -778,7 +862,9 @@ int lexerScan( plexer_t this )
             if ( ! lexerGetConst( this, 16 ) ) return 0;
             return 1 ;
         }
+        
         // OCT octal
+        
         if ( $c0 == L'0' &&  $c1 == L'b' )  
         {
             $pushToken($c0) 
@@ -789,7 +875,9 @@ int lexerScan( plexer_t this )
             if ( ! lexerGetConst( this, 2 ) ) return 0;
             return 1 ;
         }
+        
         // BIN binary
+        
         if ( $c0 == L'0' &&  ( $c1>=L'0' &&  $c1<=L'7') )  
         {
             $pushToken($c0) 
@@ -802,6 +890,7 @@ int lexerScan( plexer_t this )
         }
 
         // INTEGER / REAL
+        
         if ( 
             ( iswdigit($c0) && $c1==L'\'' ) || // integer 1'000 or 1e3
             ( iswdigit($c0) && $c1==L'e' )
@@ -875,9 +964,7 @@ int lexerScan( plexer_t this )
             $next;    // '
             
             this->value.wchar = lexerGetCharacter(this);
- 
-//fwprintf(stderr,L"\nexit token [%lc]\n",this->value.wchar); 
-            
+
             $next;    // '
             $pushToken($c0);
             
@@ -960,7 +1047,7 @@ int lexerScan( plexer_t this )
             return 1 ;
         }
 
-        // ## ....................................... trigraphs
+       // ## ....................................... trigraphs
 
        if ( ($c0 == L'?') && ($c1 == L'?') )
        {
@@ -1186,6 +1273,7 @@ plexer_t      lexerAlloc            ( void )
     {
         pLexer->fDebug               = 0         ;
         pLexer->flexerScan           = 0         ;
+        pLexer->fMultipleBuffer   	 = 0         ;        
         pLexer->tabSize              = 4         ;      
         pLexer->pFileOutputLexer     = NULL      ;  
         pLexer->fileNameOutputLexer  = NULL      ; 
@@ -1194,6 +1282,7 @@ plexer_t      lexerAlloc            ( void )
         pLexer->old_col              = 0         ;
         pLexer->old_row              = 0         ;
         pLexer->fileInputName        = NULL      ;
+        pLexer->fileInputNameS8      = NULL      ;        
         pLexer->pfileInput           = NULL      ;
         pLexer->c0                   = 0         ;
         pLexer->c1                   = 0         ;
@@ -1291,6 +1380,8 @@ ptoken_t lexerTokenNew( plexer_t this )
 }
 
 */
+
+
 
 /**/
 

@@ -152,22 +152,23 @@ int main (int argc , const char** argv )
 	//  LEXER
 	// *********
 
-	plexer_t lexer = lexerAlloc();
+		plexer_t lexer = lexerAlloc();
 
-	lexerCtor(lexer);
+		lexerCtor(lexer);
 
-	if ( g.fDebug == 1 ) lexer->fDebug = 1 ;
+		if ( g.fDebug == 1 ) lexer->fDebug = 1 ;
 
-	// LEXER
-	
-		lexerInclude ( lexer , g.fileInputName ) ;
+		// LEXER
 		
-		for(;;)
-		{
-			lexerGetToken(lexer) ; // ottien il token
-			if ( lexer->sym == sym_end ) break; 
-		}
-		
+			lexerInclude ( lexer , g.fileInputName ) ;
+			//lexerInclude ( lexer , newBuffer ) ;	
+				
+			for(;;)
+			{
+				lexerGetToken(lexer) ; // ottien il token
+				if ( lexer->sym == sym_end ) break; 
+			}
+			
 	// END LEXER
             
 	lexerDtor(lexer);

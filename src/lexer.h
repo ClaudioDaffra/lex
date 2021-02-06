@@ -1,6 +1,17 @@
 #ifndef cdLexer
 #define cdLexer
 
+#ifndef _DEFAULT_SOURCE
+#define _DEFAULT_SOURCE
+#endif
+
+//#include <sys/syslimits.h>
+#include <fcntl.h>
+
+#include <unistd.h>
+#include <limits.h>
+#include <stdlib.h>
+       
 #include "../lib/cxx.h"
 #include "global.h"
 #include "error.h"
@@ -24,6 +35,7 @@ struct lexerBuffer_s
     uint32_t        row ;
     uint32_t        col ;
     const wchar_t*  fileInputName ;
+	char*  			fileInputNameS8 ;    
     FILE*           pfileInput ;
 } ;
 
@@ -45,9 +57,10 @@ stackTypeDef(lexerBuffer_t,sLexBuffer) ; // stack_sLexBuffer_t
 
 struct lexer_s
 {
-    int             fDebug ;    // emit debug info
-    int             flexerScan    ;
-    
+    int             fDebug 			;    // emit debug info
+    int             flexerScan    	;
+	int 			fMultipleBuffer ;	// do not create others .lexer output -d
+	
     //
     
     int             tabSize                 ; // size tab
@@ -62,6 +75,8 @@ struct lexer_s
     uint32_t        old_col     ;
         
     const wchar_t*  fileInputName     ;
+	char*      		fileInputNameS8   ; 
+       
     FILE*           pfileInput        ;
     
     wchar_t         c0 ;
