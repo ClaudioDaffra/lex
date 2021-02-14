@@ -133,6 +133,7 @@ typedef struct lexer_s* plexer_t ;
 #define $pushToken(C)   if ( ! lexerPushToken(this,C) ) return 0;
 #define $prev                do { ungetwc ( $c0  ,this->pfileInput ) ; this->col=this->old_col; this->row=this->old_row; } while(0);
 #define lexerUnGetChar(C)    do { ungetwc ( C    ,this->pfileInput ) ; this->col=this->old_col; this->row=this->old_row; } while(0);
+#define lexerLevel(...)	( (unsigned)(this->col_start-1) / (unsigned)this->tabSize /*_VA_ARGS__*/ ) 
 
 // ............................... pToken
 

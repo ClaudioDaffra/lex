@@ -20,6 +20,8 @@ global_t g =
     makeFileWithNewExt       	,
     outputSpecialCharInChar   	,
     outputSpecialCharInString	,
+	//
+	4			 // tabSize		
 };
 
 char* makeFileWithNewExt( char* pFileName , char* newExt )
@@ -101,7 +103,8 @@ int main (int argc , const char** argv )
         OPT_GROUP   ("Basic options:\n"),
             OPT_STRING  ('i', "input"   , &g.fileInputName      , "file input to read"  , NULL, 0, 0 ),
             OPT_STRING  ('o', "output"  , &g.fileOutputName     , "file output to write", NULL, 0, 0 ),
-            OPT_BOOLEAN ('d', "debug"   , &g.fDebug             , "debug"               , NULL, 0, 0 ),     
+            OPT_BOOLEAN ('d', "debug"   , &g.fDebug             , "debug"               , NULL, 0, 0 ), 
+            OPT_INTEGER ('t', "tabSize" , &g.fTabSize      		, "tab size"       		, NULL, 0, 0 ),    
         OPT_END()
     };    
  
@@ -139,7 +142,8 @@ int main (int argc , const char** argv )
         if ( g.fDebug )
         {
             fwprintf ( stdout , L"\n%-20ls : [%018p] -> [%-20hs]" ,L"file input name"    ,g.pFileInput  	,g.fileInputName 	) ;
-            fwprintf ( stdout , L"\n%-20ls : [%018p] -> [%-20hs]" ,L"file output name"   ,g.pFileOutput  	,g.fileOutputName 	) ;                                                    
+            fwprintf ( stdout , L"\n%-20ls : [%018p] -> [%-20hs]" ,L"file output name"   ,g.pFileOutput  	,g.fileOutputName 	) ;  
+            fwprintf ( stdout , L"\n%-20ls : [%d]				" ,L"tab size"   		 ,g.fTabSize							) ;                                                   
         }
 
         stdConsoleSetUTF8();

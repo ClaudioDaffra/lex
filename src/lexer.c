@@ -290,9 +290,10 @@ int lexerPrintToken( plexer_t this )
     else
         fwprintf ( this->pFileOutputLexer,L"[%-20.20ls]"    ,this->fileInputName ) ;
 
-    fwprintf ( this->pFileOutputLexer , L"[%03d,%03d] len(%02d) sym(%03d) "
+    fwprintf ( this->pFileOutputLexer , L"[%03d,%03d] lev(%02u) len(%02d) sym(%03d) "
         ,    this->row_start
         ,    this->col_start-1
+		,    lexerLevel()
         ,    (int)this->tokenSize
         ,    (uint32_t)this->sym
     ) ;    

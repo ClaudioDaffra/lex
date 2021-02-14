@@ -18,7 +18,7 @@ typedef struct global_s
     FILE*    pFileInput    ;
 
     char*    fileOutputName;   // result
-    FILE*     pFileOutput   ;
+    FILE*    pFileOutput   ;
 
     char*   fileOutputStream ; // force debug info to stream stdout/stderr
     
@@ -27,6 +27,10 @@ typedef struct global_s
     char*       (*makeFileWithNewExt)           ( char* pFileName , char* newExt ) ;
     wchar_t     (*outputSpecialCharInChar)      ( wchar_t wchar  ) ;
     wchar_t*    (*outputSpecialCharInString)    ( wchar_t* token ) ;
+
+	//
+
+	int fTabSize ;
 
 } global_t ;
 
