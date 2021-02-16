@@ -686,23 +686,23 @@ int lexerCPP( plexer_t this )
 // ............................................................ <<= >>=
 
 int lexerCheckOp3( plexer_t this , const wchar_t* op3,sym_t sym )
-{               
-	if ( ($c0 == op3[0] ) && ($c1 == op3[1]) )
+{
+	if ( $c0 == op3[0] && $c1 == op3[1] )
 	{
-		FILE *fpSave=this->pfileInput;
-		$next ; 
-		if ( ($c0 == op3[1]) && ($c1 == op3[2]) )
+		$next
+		if ( $c0 == op3[1] && $c1 == op3[2] )
 		{
-			$pushToken(op3[0]) ;
-			$pushToken(op3[1]) ;
+			$pushToken(op3[0]) ;  
+			$pushToken(op3[1]) ;  
 			$pushToken(op3[2]) ;
-			$next ;   
-			lexerMakeToken( this, sym ) ;
-			return 1 ;
+			lexerMakeToken( this, sym ) ;  
+			return 1 ;				
 		}
-		this->pfileInput=fpSave;			
+		ungetwc ( this->c0 , this->pfileInput ) ;			
+		$c0=op3[0];
+		$c1=op3[1];			
 	}
-	return 0;
+	return 0 ;
 }
 
 // *********************
