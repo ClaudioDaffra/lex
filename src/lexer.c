@@ -695,7 +695,8 @@ int lexerCheckOp3( plexer_t this , const wchar_t* op3,sym_t sym )
 			$pushToken(op3[0]) ;  
 			$pushToken(op3[1]) ;  
 			$pushToken(op3[2]) ;
-			lexerMakeToken( this, sym ) ;  
+			lexerMakeToken( this, sym ) ;
+			$next;  
 			return 1 ;				
 		}
 		ungetwc ( this->c0 , this->pfileInput ) ;			
